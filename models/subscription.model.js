@@ -20,7 +20,7 @@ const subscriptionSchema = new mongoose.Schema({
     },
     frequency: {
         type: String,
-        enum: ['daily', 'weekly', 'monthyly', 'yearly'],
+        enum: ['daily', 'weekly', 'monthly', 'yearly'],
     },
     category: {
         type: String,
@@ -34,20 +34,24 @@ const subscriptionSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['Active', 'Cancelled', 'Expired'],
-        default: 'active',
+        default: 'Active',
     },
     startDate: {
         type: Date,
         required: true,
         validate: {
-            validator: (value) => value <= Date(),
+            validator: function (value) {
+                console.log("Validating startDate:", value);
+                console.log("Current Date:", new Date());
+                return value <= new Date();
+            },
             message: 'Start date must be in the past',
         }
     },
     renewalDate: {
         type: Date,
         validate: {
-            validator: function (value) { //*arrow functino might not work with this
+            validator: function (value) { //*arrow functino might not work with .this
                 return value > this.startDate
             },
             message: 'Renewal date must be after the start date',
@@ -70,7 +74,7 @@ subscriptionSchema.pre('save', function (next) {
             yearly: 365,
         };
 
-        this.renewalDate = newDate(this.startDate);
+        this.renewalDate = new Date(this.startDate);
         this.renewalDate.setDate(this.renewalDate.getDate() + renewalPeriods[this.frequency]);
     }
 
